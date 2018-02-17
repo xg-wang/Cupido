@@ -1,0 +1,10 @@
+applications:
+- path: .
+  memory: 256M
+  instances: 1
+  domain: mybluemix.net
+  name: cupido-chatbot
+  host: cupido-chatbot
+  disk_quota: 1024M
+  services:
+  - cupido-chatbot-cloudantNoSQLDB
