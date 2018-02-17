@@ -1,0 +1,19 @@
+{
+  "name": "cupido-chatbot",
+  "version": "0.0.1",
+  "description": "A chatbot works as Cupido",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xg-wang/Cupido.git"
+  },
+  "author": "Xingan Wang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xg-wang/Cupido/issues"
+  },
+  "homepage": "https://github.com/xg-wang/Cupido#readme"
+}
