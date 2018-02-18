@@ -2,9 +2,11 @@
   "name": "cupido-chatbot",
   "version": "0.0.1",
   "description": "A chatbot works as Cupido",
-  "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node server/app.js",
+    "dev": "concurrently \"react-scripts start\" \"nodemon server/app.js\"",
+    "build": "react-scripts build && rm -rf server/build && mv build server",
+    "eject": "react-scripts eject"
   },
   "repository": {
     "type": "git",
@@ -12,13 +14,17 @@
   },
   "dependencies": {
     "express": "4.15.x",
-    "ejs": "2.5.x",
     "cloudant": "1.7.x",
     "body-parser": "1.17.x",
     "method-override": "2.3.x",
     "morgan": "1.8.x",
     "errorhandler": "1.5.x",
-    "connect-multiparty": "2.0.x"
+    "connect-multiparty": "2.0.x",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
+    "react-scripts": "1.0.10",
+    "react-timestamp": "^4.2.1",
+    "watson-react-components": "^0.6.9"
   },
   "engines": {
     "node": "6.x"
@@ -28,5 +34,8 @@
   "bugs": {
     "url": "https://github.com/xg-wang/Cupido/issues"
   },
-  "homepage": "https://github.com/xg-wang/Cupido#readme"
+  "devDependencies": {
+    "concurrently": "^3.5.1",
+    "nodemon": "^1.15.0"
+  }
 }

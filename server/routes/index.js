@@ -1,68 +1,28 @@
-/**
- * Module dependencies.
- */
+const fs = require('fs');
+const express = require('express');
+const router = express.Router();
+const multipart = require('connect-multiparty');
+const multipartMiddleware = multipart();
 
-var express = require('express'),
-  routes = require('./routes'),
-  user = require('./routes/user'),
-  http = require('http'),
-  path = require('path'),
-  fs = require('fs');
-
-var app = express();
-
-var db;
-
-var cloudant;
-
-var fileToUpload;
-
-var dbCredentials = {
+const dbCredentials = {
   dbName: 'my_sample_db'
 };
 
-var bodyParser = require('body-parser');
-var methodOverride = require('method-override');
-var logger = require('morgan');
-var errorHandler = require('errorhandler');
-var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart();
-
-// all environments
-app.set('port', process.env.PORT || 3000);
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
-app.engine('html', require('ejs').renderFile);
-app.use(logger('dev'));
-app.use(
-  bodyParser.urlencoded({
-    extended: true
-  })
-);
-app.use(bodyParser.json());
-app.use(methodOverride());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/style', express.static(path.join(__dirname, '/views/style')));
-
-// development only
-if ('development' == app.get('env')) {
-  app.use(errorHandler());
-}
-
 function getDBCredentialsUrl(jsonData) {
-  var vcapServices = JSON.parse(jsonData);
+  let vcapServices = JSON.parse(jsonData);
   // Pattern match to find the first instance of a Cloudant service in
   // VCAP_SERVICES. If you know your service key, you can access the
   // service credentials directly by using the vcapServices object.
-  for (var vcapService in vcapServices) {
+  for (let vcapService in vcapServices) {
     if (vcapService.match(/cloudant/i)) {
       return vcapServices[vcapService][0].credentials.url;
     }
   }
 }
 
+let cloudant, db;
 function initDBConnection() {
-  //When running on Bluemix, this variable will be set to a json object
+  //When running on Bluemix, this letiable will be set to a json object
   //containing all the service credentials of all the bound services
   if (process.env.VCAP_SERVICES) {
     dbCredentials.url = getDBCredentialsUrl(process.env.VCAP_SERVICES);
@@ -71,7 +31,7 @@ function initDBConnection() {
 
     // When running this app locally you can get your Cloudant credentials
     // from Bluemix (VCAP_SERVICES in "cf env" output or the Environment
-    // Variables section for an app in the Bluemix console dashboard).
+    // letiables section for an app in the Bluemix console dashboard).
     // Once you have the credentials, paste them into a file called vcap-local.json.
     // Alternately you could point to a local database here instead of a
     // Bluemix service.
@@ -79,10 +39,12 @@ function initDBConnection() {
     dbCredentials.url = getDBCredentialsUrl(
       fs.readFileSync('vcap-local.json', 'utf-8')
     );
+    cloudant = require('cloudant')(dbCredentials.url);
+    db = cloudant.use(dbCredentials.dbName);
   }
 
   cloudant = require('cloudant')(dbCredentials.url);
-
+  ``;
   // check if DB exists if not create
   cloudant.db.create(dbCredentials.dbName, function(err, res) {
     if (err) {
@@ -93,16 +55,16 @@ function initDBConnection() {
       );
     }
   });
-
-  db = cloudant.use(dbCredentials.dbName);
 }
 
 initDBConnection();
 
-app.get('/', routes.index);
+router.get('/message', function(req, res, next) {
+  res.json('Welcome To React');
+});
 
 function createResponseData(id, name, value, attachments) {
-  var responseData = {
+  let responseData = {
     id: id,
     name: sanitizeInput(name),
     value: sanitizeInput(value),
@@ -110,7 +72,7 @@ function createResponseData(id, name, value, attachments) {
   };
 
   attachments.forEach(function(item, index) {
-    var attachmentData = {
+    let attachmentData = {
       content_type: item.type,
       key: item.key,
       url: '/api/favorites/attach?id=' + id + '&key=' + item.key
@@ -127,7 +89,7 @@ function sanitizeInput(str) {
     .replace(/>/g, '&gt;');
 }
 
-var saveDocument = function(id, name, value, response) {
+function saveDocument(id, name, value, response) {
   if (id === undefined) {
     // Generated random id
     id = '';
@@ -147,11 +109,11 @@ var saveDocument = function(id, name, value, response) {
       response.end();
     }
   );
-};
+}
 
-app.get('/api/favorites/attach', function(request, response) {
-  var doc = request.query.id;
-  var key = request.query.key;
+router.get('/api/favorites/attach', function(request, response) {
+  let doc = request.query.id;
+  let key = request.query.key;
 
   db.attachment.get(doc, key, function(err, body) {
     if (err) {
@@ -170,17 +132,17 @@ app.get('/api/favorites/attach', function(request, response) {
   });
 });
 
-app.post('/api/favorites/attach', multipartMiddleware, function(
+router.post('/api/favorites/attach', multipartMiddleware, function(
   request,
   response
 ) {
   console.log('Upload File Invoked..');
   console.log('Request: ' + JSON.stringify(request.headers));
 
-  var id;
+  let id;
 
   db.get(request.query.id, function(err, existingdoc) {
-    var isExistingDoc = false;
+    let isExistingDoc = false;
     if (!existingdoc) {
       id = '-1';
     } else {
@@ -188,13 +150,13 @@ app.post('/api/favorites/attach', multipartMiddleware, function(
       isExistingDoc = true;
     }
 
-    var name = sanitizeInput(request.query.name);
-    var value = sanitizeInput(request.query.value);
+    let name = sanitizeInput(request.query.name);
+    let value = sanitizeInput(request.query.value);
 
-    var file = request.files.file;
-    var newPath = './public/uploads/' + file.name;
+    let file = request.files.file;
+    let newPath = './public/uploads/' + file.name;
 
-    var insertAttachment = function(file, id, rev, name, value, response) {
+    let insertAttachment = function(file, id, rev, name, value, response) {
       fs.readFile(file.path, function(err, data) {
         if (!err) {
           if (file) {
@@ -216,9 +178,9 @@ app.post('/api/favorites/attach', multipartMiddleware, function(
                         JSON.stringify(doc._attachments)
                     );
 
-                    var attachements = [];
-                    var attachData;
-                    for (var attachment in doc._attachments) {
+                    let attachements = [];
+                    let attachData;
+                    for (let attachment in doc._attachments) {
                       if (attachment == value) {
                         attachData = {
                           key: attachment,
@@ -232,7 +194,7 @@ app.post('/api/favorites/attach', multipartMiddleware, function(
                       }
                       attachements.push(attachData);
                     }
-                    var responseData = createResponseData(
+                    let responseData = createResponseData(
                       id,
                       name,
                       value,
@@ -303,22 +265,22 @@ app.post('/api/favorites/attach', multipartMiddleware, function(
   });
 });
 
-app.post('/api/favorites', function(request, response) {
+router.post('/api/favorites', function(request, response) {
   console.log('Create Invoked..');
   console.log('Name: ' + request.body.name);
   console.log('Value: ' + request.body.value);
 
-  // var id = request.body.id;
-  var name = sanitizeInput(request.body.name);
-  var value = sanitizeInput(request.body.value);
+  // let id = request.body.id;
+  let name = sanitizeInput(request.body.name);
+  let value = sanitizeInput(request.body.value);
 
   saveDocument(null, name, value, response);
 });
 
-app.delete('/api/favorites', function(request, response) {
+router.delete('/api/favorites', function(request, response) {
   console.log('Delete Invoked..');
-  var id = request.query.id;
-  // var rev = request.query.rev; // Rev can be fetched from request. if
+  let id = request.query.id;
+  // let rev = request.query.rev; // Rev can be fetched from request. if
   // needed, send the rev from client
   console.log('Removing document of ID: ' + id);
   console.log('Request Query: ' + JSON.stringify(request.query));
@@ -344,12 +306,12 @@ app.delete('/api/favorites', function(request, response) {
   );
 });
 
-app.put('/api/favorites', function(request, response) {
+router.put('/api/favorites', function(request, response) {
   console.log('Update Invoked..');
 
-  var id = request.body.id;
-  var name = sanitizeInput(request.body.name);
-  var value = sanitizeInput(request.body.value);
+  let id = request.body.id;
+  let name = sanitizeInput(request.body.name);
+  let value = sanitizeInput(request.body.value);
 
   console.log('ID: ' + id);
 
@@ -375,21 +337,21 @@ app.put('/api/favorites', function(request, response) {
   );
 });
 
-app.get('/api/favorites', function(request, response) {
+router.get('/api/favorites', function(request, response) {
   console.log('Get method invoked.. ');
 
   db = cloudant.use(dbCredentials.dbName);
-  var docList = [];
-  var i = 0;
+  let docList = [];
+  let i = 0;
   db.list(function(err, body) {
     if (!err) {
-      var len = body.rows.length;
+      let len = body.rows.length;
       console.log('total # of docs -> ' + len);
       if (len == 0) {
         // push sample data
         // save doc
-        var docName = 'sample_doc';
-        var docDesc = 'A sample Document';
+        let docName = 'sample_doc';
+        let docDesc = 'A sample Document';
         db.insert(
           {
             name: docName,
@@ -401,7 +363,7 @@ app.get('/api/favorites', function(request, response) {
               console.log(err);
             } else {
               console.log('Document : ' + JSON.stringify(doc));
-              var responseData = createResponseData(
+              let responseData = createResponseData(
                 doc.id,
                 docName,
                 docDesc,
@@ -425,8 +387,8 @@ app.get('/api/favorites', function(request, response) {
             function(err, doc) {
               if (!err) {
                 if (doc['_attachments']) {
-                  var attachments = [];
-                  for (var attribute in doc['_attachments']) {
+                  let attachments = [];
+                  for (let attribute in doc['_attachments']) {
                     if (
                       doc['_attachments'][attribute] &&
                       doc['_attachments'][attribute]['content_type']
@@ -442,14 +404,14 @@ app.get('/api/favorites', function(request, response) {
                         JSON.stringify(doc['_attachments'][attribute])
                     );
                   }
-                  var responseData = createResponseData(
+                  let responseData = createResponseData(
                     doc._id,
                     doc.name,
                     doc.value,
                     attachments
                   );
                 } else {
-                  var responseData = createResponseData(
+                  let responseData = createResponseData(
                     doc._id,
                     doc.name,
                     doc.value,
@@ -477,6 +439,4 @@ app.get('/api/favorites', function(request, response) {
   });
 });
 
-http.createServer(app).listen(app.get('port'), '0.0.0.0', function() {
-  console.log('Express server listening on port ' + app.get('port'));
-});
+module.exports = router;
