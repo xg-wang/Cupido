@@ -8,3 +8,6 @@ applications:
   disk_quota: 1024M
   services:
   - cupido-chatbot-cloudantNoSQLDB
+  - cupido-chatbot-conversation
+  - cupido-chatbot-personal-insights
+  - cupido-chatbot-tone-analyzer

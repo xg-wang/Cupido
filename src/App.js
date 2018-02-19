@@ -125,7 +125,7 @@ class App extends Component {
 
         <Alert type="info" color="blue">
           <p className="base--p">
-            The Chat Bot finds out your best matched type the other part!
+            The Chat Bot finds out the best match people for you!
           </p>
         </Alert>
 

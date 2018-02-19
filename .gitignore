@@ -1,4 +1,5 @@
 server/build/
+vcap-local.json
 
 # Logs
 logs

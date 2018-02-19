@@ -16,7 +16,7 @@ const logger = require('morgan');
 const errorHandler = require('errorhandler');
 
 // all environments
-app.set('port', process.env.PORT || 3001);
+app.set('port', process.env.PORT || 3000);
 app.use(logger('dev'));
 app.use(
   bodyParser.urlencoded({
