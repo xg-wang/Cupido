@@ -54,10 +54,8 @@ class App extends Component {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        conversation: {
-          input: { text: input, language: 'en' },
-          context: context /*, _id: self.state._id */
-        }
+        input: { text: input, language: 'en' },
+        context: context /*, _id: self.state._id */
       })
     })
       .then(response => response.json())
@@ -66,12 +64,12 @@ class App extends Component {
         let now = new Date();
         let hhmmss = now.toString().substr(16, 8);
         self.setState({
-          context: messageResponse.conversation.context,
+          context: messageResponse.context,
           messages: self.state.messages.concat({
-            message: messageResponse.conversation.output.text.join('\n'),
+            message: messageResponse.output.text.join('\n'),
             type: 'watson',
             time: hhmmss,
-            summary: messageResponse.conversation.context.summary,
+            summary: messageResponse.context.summary,
             dots: purple
           })
         });

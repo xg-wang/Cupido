@@ -16,8 +16,6 @@
 
 'use strict';
 
-var Promise = require('bluebird');
-
 /**
  * Public functions for this module
  */
