@@ -13,17 +13,18 @@
     "url": "git+https://github.com/xg-wang/Cupido.git"
   },
   "dependencies": {
-    "express": "4.15.x",
-    "cloudant": "1.7.x",
+    "@cloudant/cloudant": "^2.0.2",
     "body-parser": "1.17.x",
+    "connect-multiparty": "2.0.x",
+    "errorhandler": "1.5.x",
+    "express": "4.15.x",
     "method-override": "2.3.x",
     "morgan": "1.8.x",
-    "errorhandler": "1.5.x",
-    "connect-multiparty": "2.0.x",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-scripts": "1.0.10",
     "react-timestamp": "^4.2.1",
+    "watson-developer-cloud": "^3.0.6",
     "watson-react-components": "^0.6.9"
   },
   "engines": {
