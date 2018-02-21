@@ -1,4 +1,5 @@
 const fs = require('fs');
+const _ = require('lodash');
 const ConversationV1 = require('watson-developer-cloud/conversation/v1');
 const ToneAnalyzerV3 = require('watson-developer-cloud/tone-analyzer/v3');
 const PersonalityInsightsV3 = require('watson-developer-cloud/personality-insights/v3');
@@ -6,7 +7,7 @@ const Cloudant = require('@cloudant/cloudant');
 
 module.exports = {
   initServices,
-  updateDocTexts,
+  updateDoc,
   getPersonalityInsights
 };
 
@@ -87,27 +88,85 @@ function initServices() {
   };
 }
 
-function updateDocTexts(db, text, username, id) {
+function updateDoc(db, text, username, interestsSet, id) {
   db.get(id, function(error, existing) {
-    const newDoc = {
-      texts: [text],
-      username: username
+    let newDoc = {
+      texts: [{ text, time: new Date().toString() }],
+      username: username,
+      interests: []
     };
     if (!error) {
-      newDoc._rev = existing._rev;
-      newDoc.texts = [...existing.texts, text];
+      newDoc = _.cloneDeep(existing);
+      newDoc.username = username;
+      newDoc.texts = [...newDoc.texts, { text, time: new Date().toString() }];
+      for (let i of newDoc.interests) {
+        interestsSet.add(i);
+      }
+      newDoc.interests = Array.from(interestsSet);
     }
     db.insert(newDoc, id);
   });
 }
 
-function getPersonalityInsights(db, id) {
+function getPersonalityInsights(db, id, personalityInsights) {
   return new Promise((resolve, reject) => {
     db.get(id, function(error, doc) {
       if (error) {
         resolve("Not enough data, let's talk more! What do you like to do?");
       }
-      resolve('pi');
+      const contentItems = doc.texts.map((text, idx) => ({
+        id: `${id}-${idx}`,
+        language: 'en', // TODO: use input.language
+        contenttype: 'text/plain',
+        content: text.text,
+        created: Date.parse(text.time),
+        reply: true
+      }));
+      personalityInsights.profile(
+        {
+          contentItems,
+          consumption_preferences: true
+        },
+        function(error, response) {
+          if (error) {
+            console.log('Error:', error);
+            // if error, we don't have enough data, fall back to naive way.
+            naiveMatch(db, id, doc.interests).then(msg => resolve(msg));
+          } else {
+            console.log(JSON.stringify(response, null, 2));
+            naiveMatch(db, id, doc.interests).then(msg => resolve(msg));
+          }
+        }
+      );
+    });
+  });
+}
+
+// select most matched interests username
+function naiveMatch(db, id, interests) {
+  return new Promise((res, rej) => {
+    let maxDoc,
+      maxCount = 0;
+    db.list({ include_docs: true }, (err, body) => {
+      if (!err) {
+        body.rows.forEach(doc => {
+          // if (doc._id === id) return;
+          const common = _.intersection(doc.doc.interests, interests);
+          if (common.length >= maxCount) {
+            maxDoc = doc;
+            maxCount = common.length;
+          }
+        });
+        const common = _.intersection(maxDoc.doc.interests, interests);
+        const str = common.join(', ');
+        res(
+          `${
+            maxDoc.doc.username
+          } is your best match! Your common interests are ${str}`
+        );
+      } else {
+        rej(err);
+      }
     });
   });
 }

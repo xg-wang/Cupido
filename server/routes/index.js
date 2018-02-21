@@ -70,16 +70,24 @@ function updateMessage(input, response) {
   } else if (response.output.end) {
     return Helpers.getPersonalityInsights(
       db,
-      response.context.conversation_id
+      response.context.conversation_id,
+      personalityInsights
     ).then(personalityInsightsResult => {
       response.output.text = [personalityInsightsResult];
       return response;
     });
   } else if (response.context.username) {
-    Helpers.updateDocTexts(
+    let set = new Set([]);
+    if (response.entities.length > 0) {
+      set = new Set(
+        response.entities.filter(e => e.entity === 'interest').map(e => e.value)
+      );
+    }
+    Helpers.updateDoc(
       db,
       input.input.text,
       response.context.username,
+      set,
       response.context.conversation_id
     );
   }
