@@ -46,6 +46,7 @@ class App extends Component {
   }
 
   sendMessage(input, context) {
+    console.log(input);
     const self = this;
     fetch(API, {
       method: 'POST',
@@ -104,7 +105,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.sendMessage('Hello', {});
+    this.sendMessage('hi', {});
   }
 
   componentDidUpdate() {
