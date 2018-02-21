@@ -138,9 +138,9 @@ function getPersonalityInsights(db, id, personalityInsights) {
             // if error, we don't have enough data, fall back to naive way.
             naiveMatch(db, id, doc.interests).then(msg => resolve(msg));
           } else {
-            console.log(JSON.stringify(response, null, 2));
-            updateInsightsToInterests(db, id, response).then(status => {
-              naiveMatch(db, id, doc.interests).then(msg => resolve(msg));
+            // console.log(JSON.stringify(response, null, 2));
+            updateInsightsToInterests(db, id, response).then(newInterests => {
+              naiveMatch(db, id, newInterests).then(msg => resolve(msg));
             });
           }
         }
@@ -157,7 +157,7 @@ function naiveMatch(db, id, interests) {
     db.list({ include_docs: true }, (err, body) => {
       if (!err) {
         body.rows.forEach(doc => {
-          if (doc._id === id) return;
+          if (doc.id === id) return;
           const common = _.intersection(doc.doc.interests, interests);
           if (common.length >= maxCount) {
             maxDoc = doc;
@@ -194,7 +194,7 @@ function updateInsightsToInterests(db, id, response) {
           .map(r => r.name);
         newDoc.interests.push(...personalityArr, ...needsArr, ...valuesArr);
         db.insert(newDoc, id, err => {
-          if (!err) resolve('update success');
+          if (!err) resolve(newDoc.interests);
           else reject('insert fail');
         });
       }
