@@ -5,7 +5,9 @@ const PersonalityInsightsV3 = require('watson-developer-cloud/personality-insigh
 const Cloudant = require('@cloudant/cloudant');
 
 module.exports = {
-  initServices
+  initServices,
+  updateDocTexts,
+  getPersonalityInsights
 };
 
 function initServices() {
@@ -83,4 +85,29 @@ function initServices() {
     toneAnalyzer,
     personalityInsights
   };
+}
+
+function updateDocTexts(db, text, username, id) {
+  db.get(id, function(error, existing) {
+    const newDoc = {
+      texts: [text],
+      username: username
+    };
+    if (!error) {
+      newDoc._rev = existing._rev;
+      newDoc.texts = [...existing.texts, text];
+    }
+    db.insert(newDoc, id);
+  });
+}
+
+function getPersonalityInsights(db, id) {
+  return new Promise((resolve, reject) => {
+    db.get(id, function(error, doc) {
+      if (error) {
+        resolve("Not enough data, let's talk more! What do you like to do?");
+      }
+      resolve('pi');
+    });
+  });
 }

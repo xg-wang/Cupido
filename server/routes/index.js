@@ -51,20 +51,6 @@ router.post('/message', function(req, res) {
   }
 });
 
-function updateDocTexts(db, text, username, id) {
-  db.get(id, function(error, existing) {
-    const newDoc = {
-      texts: [text],
-      username: username
-    };
-    if (!error) {
-      newDoc._rev = existing._rev;
-      newDoc.texts = [...existing.texts, text];
-    }
-    db.insert(newDoc, id);
-  });
-}
-
 /**
  * Updates the response text using the intent confidence
  *
@@ -82,9 +68,15 @@ function updateMessage(input, response) {
       text: ''
     };
   } else if (response.output.end) {
-    response.output.text = ['OK! Please wait for the matching...'];
+    return Helpers.getPersonalityInsights(
+      db,
+      response.context.conversation_id
+    ).then(personalityInsightsResult => {
+      response.output.text = [personalityInsightsResult];
+      return response;
+    });
   } else if (response.context.username) {
-    updateDocTexts(
+    Helpers.updateDocTexts(
       db,
       input.input.text,
       response.context.username,
@@ -92,7 +84,7 @@ function updateMessage(input, response) {
     );
   }
 
-  return response;
+  return Promise.resolve(response);
 }
 
 /**
@@ -115,8 +107,9 @@ function invokeToneConversation(payload, res) {
           console.error(JSON.stringify(err, null, 2));
           return res.status(err.code || 500).json(err);
         } else {
-          const response = updateMessage(payload, data);
-          return res.json(response);
+          updateMessage(payload, data).then(response => {
+            return res.json(response);
+          });
         }
       });
     })
