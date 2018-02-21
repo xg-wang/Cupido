@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "A chatbot works as Cupido",
   "scripts": {
+    "prestart": "npm run build",
     "start": "node server/app.js",
     "dev": "nodemon server/app.js",
     "build": "react-scripts build && rm -rf server/build && mv build server",
@@ -30,7 +31,7 @@
     "watson-react-components": "^0.6.9"
   },
   "engines": {
-    "node": "6.x"
+    "node": "8.x"
   },
   "author": "Xingan Wang",
   "license": "MIT",
