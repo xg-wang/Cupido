@@ -117,29 +117,7 @@ You can use an exisiting instance of the Conversation service. Otherwise, follow
 
 ## Testing the app
 
-After your app is installed and running, experiment with it to see how it responds.
-
-The chat interface is on the left, and the JSON that the JavaScript code receives from the Conversation service is on the right. Your questions and commands are interpreted using a small set of sample data trained with the following intents:
-
-    turn_on
-    turn_off
-    turn_up
-    turn_down
-    traffic_update
-    locate_amenity
-    weather
-    phone
-    capabilities
-    greetings
-    goodbyes
-
-Type a request, such as `music on` or `I want to turn on the windshield wipers`. The system understands your intent and responds. You can see the details of how your input was understood by examining the JSON data in the `Watson understands` section on the right side.
-
-For example, if you type `Turn on some music`, the JSON data shows that the system understood the `turn_on` intent with a high level of confidence, along with the `appliance` entity with a value of `music`.
-
-For more information about intents, see the [Conversation service documentation][doc_intents].
-
-To see details of how these intents are defined, including sample input for each intent, launch the Conversation tool.
+Follow the chatbot and have a nice talk. Sample input is under `training/sample_input.txt`. Together with a personality insights analysis output.
 
 ## Deploying to IBM Cloud
 

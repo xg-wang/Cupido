@@ -83,13 +83,15 @@ function updateMessage(input, response) {
         response.entities.filter(e => e.entity === 'interest').map(e => e.value)
       );
     }
-    Helpers.updateDoc(
+    return Helpers.updateDoc(
       db,
       input.input.text,
       response.context.username,
       set,
       response.context.conversation_id
-    );
+    ).then(msg => {
+      return response;
+    });
   }
 
   return Promise.resolve(response);

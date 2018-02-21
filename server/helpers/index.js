@@ -89,22 +89,27 @@ function initServices() {
 }
 
 function updateDoc(db, text, username, interestsSet, id) {
-  db.get(id, function(error, existing) {
-    let newDoc = {
-      texts: [{ text, time: new Date().toString() }],
-      username: username,
-      interests: []
-    };
-    if (!error) {
-      newDoc = _.cloneDeep(existing);
-      newDoc.username = username;
-      newDoc.texts = [...newDoc.texts, { text, time: new Date().toString() }];
-      for (let i of newDoc.interests) {
-        interestsSet.add(i);
+  return new Promise((resolve, reject) => {
+    db.get(id, function(error, existing) {
+      let newDoc = {
+        texts: [{ text, time: new Date().toString() }],
+        username: username,
+        interests: []
+      };
+      if (!error) {
+        newDoc = _.cloneDeep(existing);
+        newDoc.username = username;
+        newDoc.texts = [...newDoc.texts, { text, time: new Date().toString() }];
+        for (let i of newDoc.interests) {
+          interestsSet.add(i);
+        }
+        newDoc.interests = Array.from(interestsSet);
       }
-      newDoc.interests = Array.from(interestsSet);
-    }
-    db.insert(newDoc, id);
+      db.insert(newDoc, id, err => {
+        if (err) reject('update fail');
+        else resolve('update success');
+      });
+    });
   });
 }
 
@@ -134,7 +139,9 @@ function getPersonalityInsights(db, id, personalityInsights) {
             naiveMatch(db, id, doc.interests).then(msg => resolve(msg));
           } else {
             console.log(JSON.stringify(response, null, 2));
-            naiveMatch(db, id, doc.interests).then(msg => resolve(msg));
+            updateInsightsToInterests(db, id, response).then(status => {
+              naiveMatch(db, id, doc.interests).then(msg => resolve(msg));
+            });
           }
         }
       );
@@ -150,7 +157,7 @@ function naiveMatch(db, id, interests) {
     db.list({ include_docs: true }, (err, body) => {
       if (!err) {
         body.rows.forEach(doc => {
-          // if (doc._id === id) return;
+          if (doc._id === id) return;
           const common = _.intersection(doc.doc.interests, interests);
           if (common.length >= maxCount) {
             maxDoc = doc;
@@ -166,6 +173,30 @@ function naiveMatch(db, id, interests) {
         );
       } else {
         rej(err);
+      }
+    });
+  });
+}
+
+function updateInsightsToInterests(db, id, response) {
+  return new Promise((resolve, reject) => {
+    db.get(id, function(error, existing) {
+      if (!error) {
+        newDoc = _.cloneDeep(existing);
+        const personalityArr = (response.personality || [])
+          .filter(r => r.percentile >= 0.75)
+          .map(r => r.name);
+        const needsArr = (response.needs || [])
+          .filter(r => r.percentile >= 0.75)
+          .map(r => r.name);
+        const valuesArr = (response.values || [])
+          .filter(r => r.percentile >= 0.75)
+          .map(r => r.name);
+        newDoc.interests.push(...personalityArr, ...needsArr, ...valuesArr);
+        db.insert(newDoc, id, err => {
+          if (!err) resolve('update success');
+          else reject('insert fail');
+        });
       }
     });
   });
