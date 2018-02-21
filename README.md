@@ -2,7 +2,13 @@
 
 This Node.js app is a proof-of-concept app that matches users based on their common interests and personality insights.
 
-You can view a [demo][demo_url] of this app.
+Demo [video](https://vimeo.com/256770695) online.
+
+As shown in the video, the mathed interests include `[hiking, music, read, movie, Openness, Agreeableness, Love, Openness to change, Self-transcendence]`,
+among them `[Openness, Agreeableness, Love, Openness to change, Self-transcendence]` are from personality insights analysis.
+This verifies our personality service is used well to do the match. And this also give us much better ability to analyze user's common personality and interests.
+
+You can play around with a [demo][demo_url] of this app.
 
 ## Before you begin
 
@@ -166,3 +172,13 @@ cf logs <application-name> --recent
 
 This sample code is licensed under Apache 2.0.
 Full license text is available in [LICENSE](LICENSE).
+
+[cf_docs]: (https://console.bluemix.net/docs/services/watson/getting-started-cf.html)
+[cloud_foundry]: https://github.com/cloudfoundry/cli#downloads
+[demo_url]: http://cupido-chatbot.mybluemix.net/
+[doc_intents]: (https://console.bluemix.net/docs/services/conversation/intents-entities.html#planning-your-entities)
+[docs]: https://console.bluemix.net/docs/services/conversation/index.html
+[docs_landing]: (https://console.bluemix.net/docs/services/conversation/index.html)
+[node_link]: (http://nodejs.org/)
+[npm_link]: (https://www.npmjs.com/)
+[sign_up]: bluemix.net/registration
