@@ -51,6 +51,20 @@ router.post('/message', function(req, res) {
   }
 });
 
+function updateDocTexts(db, text, username, id) {
+  db.get(id, function(error, existing) {
+    const newDoc = {
+      texts: [text],
+      username: username
+    };
+    if (!error) {
+      newDoc._rev = existing._rev;
+      newDoc.texts = [...existing.texts, text];
+    }
+    db.insert(newDoc, id);
+  });
+}
+
 /**
  * Updates the response text using the intent confidence
  *
@@ -69,12 +83,13 @@ function updateMessage(input, response) {
     };
   } else if (response.output.end) {
     response.output.text = ['OK! Please wait for the matching...'];
-  } else {
-    db.insert({
-      request: input,
-      response: response,
-      time: new Date()
-    });
+  } else if (response.context.username) {
+    updateDocTexts(
+      db,
+      input.input.text,
+      response.context.username,
+      response.context.conversation_id
+    );
   }
 
   return response;
